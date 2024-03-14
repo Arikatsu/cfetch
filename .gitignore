@@ -50,3 +50,8 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# thank you vs
+.vs/
+x64/
+x86/
