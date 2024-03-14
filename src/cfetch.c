@@ -17,8 +17,9 @@ int main()
 	};
 	
 	char* ok = fetch("http://httpbin.org/get", &options);
-
+	
 	printf("%s\n", ok);
+	free(ok);
     
     return 0;
 }
