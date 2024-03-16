@@ -1,4 +1,5 @@
 #include <stdio.h>
+
 #include "cfetch.h"
 
 #define PRINT_RESPONSE(response)														\
