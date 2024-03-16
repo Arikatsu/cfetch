@@ -51,11 +51,11 @@ typedef struct
 
 struct URLInfo 
 {
-    char hostname[BUFFER_SIZE];
-	char path[BUFFER_SIZE];
+    const char hostname[BUFFER_SIZE];
+	const char path[BUFFER_SIZE];
 };
 
-void cleanup(SOCKET sockfd, struct addrinfo* server, char* error_message)
+void cleanup(const SOCKET sockfd, const struct addrinfo* server, const char* error_message)
 {
 	if (sockfd != INVALID_SOCKET) 
 		closesocket(sockfd);
@@ -80,7 +80,7 @@ int strcasecmp(const char* s1, const char* s2) {
     return tolower(*s1) - tolower(*s2);
 }
 
-void parse_http_response(char* response_text, Response* response) 
+void parse_http_response(const char* response_text, Response* response) 
 {
     char* line;
     char* token;
@@ -93,7 +93,7 @@ void parse_http_response(char* response_text, Response* response)
     response->headers = NULL;
     response->total_headers = 0;
     
-    line = strtok(response_text, delim);
+    line = strtok((char*)response_text, delim);
 	char* temp = strtok(NULL, "");
     
     if (line != NULL) 
@@ -115,7 +115,6 @@ void parse_http_response(char* response_text, Response* response)
         body_start += 4; // Skip "\r\n\r\n"
         char* body = _strdup(body_start);
         
-		// Remove unneeded characters from the end of the body
 		for (int i = strlen(body) - 1; i >= 0; i--)
 		{
 			if (body[i] == '\r' || body[i] == '\n')
@@ -147,8 +146,7 @@ void parse_http_response(char* response_text, Response* response)
 
 		char* key = strtok(header, ":");
 		char* value = strtok(NULL, "");
-
-        // trim any \n from key
+        
 		key = strtok(key, "\n");
         
         if (key == NULL)
@@ -156,8 +154,7 @@ void parse_http_response(char* response_text, Response* response)
             free(header);
 			break;
         }
-
-		// Reallocate memory for headers
+        
 		response->headers = (RequestHeader*)realloc(response->headers, (i + 1) * sizeof(RequestHeader));
 		if (response->headers == NULL)
 		{
@@ -175,7 +172,7 @@ void parse_http_response(char* response_text, Response* response)
 	}
 }
 
-char* http_get(SOCKET sockfd, struct addrinfo* server, struct URLInfo* url, const FetchOptions* options)
+char* http_get(const SOCKET sockfd, const struct addrinfo* server, const struct URLInfo* url, const FetchOptions* options)
 {
     char* response = NULL;
     
