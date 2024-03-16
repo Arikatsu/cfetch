@@ -14,17 +14,6 @@ void cleanup(SOCKET sockfd, struct addrinfo* server, const char* error_message)
     WSACleanup();
 }
 
-int strcasecmp(const char* s1, const char* s2) {
-    while (*s1 && *s2) {
-        if (tolower(*s1) != tolower(*s2)) {
-            return tolower(*s1) - tolower(*s2);
-        }
-        s1++;
-        s2++;
-    }
-    return tolower(*s1) - tolower(*s2);
-}
-
 int parse_url(const char* url, struct URLInfo* url_info)
 {
     char* temp = (char*)malloc(strlen(url) + 1);

@@ -16,8 +16,6 @@
 
 void cleanup(const SOCKET sockfd, const struct addrinfo* server, const char* error_message);
 
-int strcasecmp(const char* s1, const char* s2);
-
 int parse_url(const char* url, struct URLInfo* url_info);
 
 int parse_http_response(const char* response_text, Response* response);
