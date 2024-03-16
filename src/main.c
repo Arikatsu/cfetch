@@ -38,11 +38,9 @@ int main()
 		free(ok);
 		return 1;
 	}
-	else 
-	{
-		PRINT_RESPONSE(ok);
-		free(ok);
-	}
+	
+	PRINT_RESPONSE(ok);
+	free(ok);
     
     return 0;
 }
