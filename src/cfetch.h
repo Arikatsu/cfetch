@@ -12,6 +12,7 @@
 
 #define BUFFER_SIZE 1024
 #define TIMEOUT_MS 5000
+#define MAX_HEADERS 100
 
 enum HTTP_METHOD
 {
@@ -38,6 +39,16 @@ typedef struct
     RequestHeader* headers;
 } FetchOptions;
 
+typedef struct
+{
+	int status_code;
+    char* status_text;
+	char* body;
+	char* url;
+	RequestHeader* headers;
+	int total_headers;
+} Response;
+
 struct URLInfo 
 {
     char hostname[BUFFER_SIZE];
@@ -51,11 +62,117 @@ void cleanup(SOCKET sockfd, struct addrinfo* server, char* error_message)
     
     if (server != NULL) 
         freeaddrinfo(server);
-
+    
 	if (error_message != NULL) 
         perror(error_message);
     
 	WSACleanup();
+}
+
+int strcasecmp(const char* s1, const char* s2) {
+    while (*s1 && *s2) {
+        if (tolower(*s1) != tolower(*s2)) {
+            return tolower(*s1) - tolower(*s2);
+        }
+        s1++;
+        s2++;
+    }
+    return tolower(*s1) - tolower(*s2);
+}
+
+void parse_http_response(char* response_text, Response* response) 
+{
+    char* line;
+    char* token;
+    const char* delim = "\r\n";
+    
+    response->status_code = 0;
+    response->status_text = NULL;
+    response->body = NULL;
+    response->url = NULL;
+    response->headers = NULL;
+    response->total_headers = 0;
+    
+    line = strtok(response_text, delim);
+	char* temp = strtok(NULL, "");
+    
+    if (line != NULL) 
+    {
+        token = strtok(line, " ");
+        token = strtok(NULL, " ");
+        if (token != NULL) 
+        {
+            response->status_code = atoi(token);
+            token = strtok(NULL, "");
+            if (token != NULL)
+                response->status_text = _strdup(token);
+        }
+    }
+    
+    char* body_start = strstr(temp, "\r\n\r\n");
+    if (body_start != NULL) 
+    {
+        body_start += 4; // Skip "\r\n\r\n"
+        char* body = _strdup(body_start);
+        
+		// Remove unneeded characters from the end of the body
+		for (int i = strlen(body) - 1; i >= 0; i--)
+		{
+			if (body[i] == '\r' || body[i] == '\n')
+				body[i] = '\0';
+			else
+				break;
+		}
+
+		response->body = body;
+    }
+    
+	char* header_start = temp;
+	for (int i = 0; i <= MAX_HEADERS; i++) 
+    {
+		char* header_end = strstr(header_start, "\r\n");
+        if (header_end == NULL) {
+            perror("Error: header_end not found\n");
+            break;
+        }
+        
+        char* header = (char*)malloc(header_end - header_start + 1);
+        if (header == NULL) {
+            printf("Error: memory allocation failed\n");
+            break;
+        }
+
+		strncpy(header, header_start, header_end - header_start);
+		header[header_end - header_start] = '\0';
+
+		char* key = strtok(header, ":");
+		char* value = strtok(NULL, "");
+
+        // trim any \n from key
+		key = strtok(key, "\n");
+        
+        if (key == NULL)
+        {
+            free(header);
+			break;
+        }
+
+		// Reallocate memory for headers
+		response->headers = (RequestHeader*)realloc(response->headers, (i + 1) * sizeof(RequestHeader));
+		if (response->headers == NULL)
+		{
+			perror("Error reallocating memory for headers");
+			break;
+		}
+
+		response->headers[i].key = _strdup(key);
+		response->headers[i].value = _strdup(value);
+
+		response->total_headers++;
+
+		header_start = header_end + 2;
+		free(header);
+	}
 }
 
 char* http_get(SOCKET sockfd, struct addrinfo* server, struct URLInfo* url, const FetchOptions* options)
@@ -74,8 +191,6 @@ char* http_get(SOCKET sockfd, struct addrinfo* server, struct URLInfo* url, cons
     }
     
     snprintf(request + strlen(request), BUFFER_SIZE - strlen(request), "\r\n");
-
-	fprintf(stderr, "Request:\n%s\n\n", request);
 
     int result = send(sockfd, request, strlen(request), 0);
     if (result == SOCKET_ERROR) 
@@ -149,13 +264,11 @@ char* http_get(SOCKET sockfd, struct addrinfo* server, struct URLInfo* url, cons
         free(response);
         return NULL;
 	}
-
-    cleanup(sockfd, server, NULL);
-
+    
     return response;
 }
 
-char* fetch(const char* url, const FetchOptions* options)
+Response* fetch(const char* url, const FetchOptions* options)
 {
     char* response = NULL;
     
@@ -227,7 +340,14 @@ char* fetch(const char* url, const FetchOptions* options)
 		    return NULL;
 	}
 
-    return response;
+	Response* response_struct = (Response*)malloc(sizeof(Response));
+	parse_http_response(response, response_struct);
+    response_struct->url = url;
+    
+    cleanup(sockfd, server, NULL);
+    free(response);
+    
+	return response_struct;
 }
 
 #endif /* C_FETCH */
