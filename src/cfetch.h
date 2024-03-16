@@ -80,7 +80,54 @@ int strcasecmp(const char* s1, const char* s2) {
     return tolower(*s1) - tolower(*s2);
 }
 
-void parse_http_response(const char* response_text, Response* response) 
+int parse_url(const char* url, struct URLInfo* url_info)
+{
+    char* temp = (char*)malloc(strlen(url) + 1);
+    if (temp == NULL)
+    {
+        perror("Error: memory allocation failed\n");
+        return -1;
+    }
+    strcpy(temp, url);
+
+    char* scheme = strtok(temp, "://");
+    if (scheme == NULL)
+    {
+        perror("Error: scheme not found\n");
+        free(temp);
+        return -1;
+    }
+
+    if (scheme == "http" || scheme == "https")
+    {
+        perror("Error: invalid scheme\n");
+        free(temp);
+        return -1;
+    }
+
+    char* hostname = strtok(NULL, "/");
+    if (hostname == NULL)
+    {
+        perror("Error: hostname not found\n");
+        free(temp);
+        return -1;
+    }
+    strcpy(url_info->hostname, hostname);
+
+    char* path = strtok(NULL, "");
+    if (path == NULL)
+    {
+        perror("Error: path not found\n");
+        free(temp);
+        return -1;
+    }
+    strcpy(url_info->path, path);
+
+    free(temp);
+    return 0;
+}
+
+int parse_http_response(const char* response_text, Response* response) 
 {
     char* line;
     char* token;
@@ -115,7 +162,7 @@ void parse_http_response(const char* response_text, Response* response)
         body_start += 4; // Skip "\r\n\r\n"
         char* body = _strdup(body_start);
         
-		for (int i = strlen(body) - 1; i >= 0; i--)
+		for (int i = (int)strlen(body) - 1; i >= 0; i--)
 		{
 			if (body[i] == '\r' || body[i] == '\n')
 				body[i] = '\0';
@@ -132,13 +179,13 @@ void parse_http_response(const char* response_text, Response* response)
 		char* header_end = strstr(header_start, "\r\n");
         if (header_end == NULL) {
             perror("Error: header_end not found\n");
-            break;
+			return -1;
         }
         
         char* header = (char*)malloc(header_end - header_start + 1);
         if (header == NULL) {
             printf("Error: memory allocation failed\n");
-            break;
+			return -1;
         }
 
 		strncpy(header, header_start, header_end - header_start);
@@ -159,7 +206,7 @@ void parse_http_response(const char* response_text, Response* response)
 		if (response->headers == NULL)
 		{
 			perror("Error reallocating memory for headers");
-			break;
+			return -1;
 		}
 
 		response->headers[i].key = _strdup(key);
@@ -170,6 +217,8 @@ void parse_http_response(const char* response_text, Response* response)
 		header_start = header_end + 2;
 		free(header);
 	}
+
+	return 0;
 }
 
 char* http_get(const SOCKET sockfd, const struct addrinfo* server, const struct URLInfo* url, const FetchOptions* options)
@@ -187,9 +236,9 @@ char* http_get(const SOCKET sockfd, const struct addrinfo* server, const struct 
         }
     }
     
-    snprintf(request + strlen(request), BUFFER_SIZE - strlen(request), "\r\n");
+    snprintf(request + strlen(request), BUFFER_SIZE - (int)strlen(request), "\r\n");
 
-    int result = send(sockfd, request, strlen(request), 0);
+    int result = send(sockfd, request, (int)strlen(request), 0);
     if (result == SOCKET_ERROR) 
     {
         int error_code = WSAGetLastError();
@@ -214,7 +263,7 @@ char* http_get(const SOCKET sockfd, const struct addrinfo* server, const struct 
     int bytes_read;
     do 
     {
-        result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
+        result = select((int)sockfd + 1, &read_fds, NULL, NULL, &timeout);
         if (result < 0) 
         {
             cleanup(sockfd, server, "Error in select()");
@@ -271,12 +320,11 @@ Response* fetch(const char* url, const FetchOptions* options)
     
     struct URLInfo url_info;
     
-    /* TODO: Implement a more robust URL parser that can handle different URL formats and schemes */
-    if (sscanf(url, "http://%[^/]/%s", url_info.hostname, url_info.path) != 2) 
-    {
-        fprintf(stderr, "Invalid URL: %s\n", url);
-        return NULL;
-    }
+	if (parse_url(url, &url_info) != 0)
+	{
+		fprintf(stderr, "Invalid URL: %s\n", url);
+		return NULL;
+	}
 
     WSADATA wsaData;
     int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -338,8 +386,16 @@ Response* fetch(const char* url, const FetchOptions* options)
 	}
 
 	Response* response_struct = (Response*)malloc(sizeof(Response));
-	parse_http_response(response, response_struct);
-    response_struct->url = url;
+	
+	if (parse_http_response(response, response_struct) != 0)
+	{
+		fprintf(stderr, "Error parsing HTTP response\n");
+		cleanup(sockfd, server, NULL);
+		free(response);
+		free(response_struct);
+		return NULL;
+	}
+    response_struct->url = (char*)url;
     
     cleanup(sockfd, server, NULL);
     free(response);

@@ -16,10 +16,12 @@ int main()
 {
 	/* goofy ahh testing */
 	
-	FetchOptions options = {
+	FetchOptions options = 
+	{
 		.method = HTTP_GET,
 		.body = NULL,
-		.headers = (RequestHeader[]) {
+		.headers = (RequestHeader[]) 
+		{
 			{ "User-Agent", "cfetch" },
 			{ "Accept", "application/json" },
 			{ "Content-Type", "application/json" },
@@ -27,10 +29,19 @@ int main()
 		}
 	};
 	
-	Response* ok = fetch("http://httpbin.org/get", &options);
+	Response* ok = fetch("https://jsonplaceholder.typicode.com/posts", &options);
 	
-	PRINT_RESPONSE(ok);
-	free(ok);
+	if (ok == NULL) 
+	{
+		printf("Failed to fetch\n");
+		free(ok);
+		return 1;
+	}
+	else 
+	{
+		PRINT_RESPONSE(ok);
+		free(ok);
+	}
     
     return 0;
 }
