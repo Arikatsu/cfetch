@@ -14,7 +14,7 @@
 
 #define MAX_HEADERS 100
 
-void cleanup(const SOCKET sockfd, const struct addrinfo *server, const char *error_message);
+void cleanup(SOCKET sockfd, struct addrinfo *server, const char *error_message);
 
 int parse_url(const char *url, struct URLInfo *url_info);
 

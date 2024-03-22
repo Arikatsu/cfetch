@@ -18,6 +18,9 @@
     <ClCompile Include="src\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\fetch.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\methods.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -26,16 +29,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\cfetch.h">
+    <ClInclude Include="src\fetch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\methods.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\methods.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

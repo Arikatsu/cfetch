@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "cfetch.h"
+#include "fetch.h"
 
 #define PRINT_RESPONSE(response)														\
 	printf("Status Code: %d\n", response->status_code);									\

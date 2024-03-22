@@ -131,12 +131,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\fetch.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\methods.c" />
     <ClCompile Include="src\utils.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\cfetch.h" />
+    <ClInclude Include="src\fetch.h" />
     <ClInclude Include="src\methods.h" />
     <ClInclude Include="src\types.h" />
     <ClInclude Include="src\utils.h" />

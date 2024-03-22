@@ -55,3 +55,6 @@ dkms.conf
 .vs/
 x64/
 x86/
+
+# build output
+dist/
