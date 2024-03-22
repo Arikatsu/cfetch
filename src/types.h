@@ -17,23 +17,23 @@ enum HTTP_METHOD
 
 typedef struct
 {
-    char* key;
-    char* value;
+    char *key;
+    char *value;
 } RequestHeader;
 
 typedef struct
 {
     const enum HTTP_METHOD method;
-    const char* body;
+    const char *body;
     RequestHeader* headers;
 } FetchOptions;
 
 typedef struct
 {
     int status_code;
-    char* status_text;
-    char* body;
-    char* url;
+    char *status_text;
+    char *body;
+    char *url;
     RequestHeader* headers;
     int total_headers;
 } Response;

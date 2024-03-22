@@ -1,6 +1,6 @@
 #include "utils.h"
 
-void cleanup(SOCKET sockfd, struct addrinfo* server, const char* error_message)
+void cleanup(SOCKET sockfd, struct addrinfo *server, const char *error_message)
 {
     if (sockfd != INVALID_SOCKET)
         closesocket(sockfd);
@@ -14,9 +14,9 @@ void cleanup(SOCKET sockfd, struct addrinfo* server, const char* error_message)
     WSACleanup();
 }
 
-int parse_url(const char* url, struct URLInfo* url_info)
+int parse_url(const char *url, struct URLInfo *url_info)
 {
-    char* temp = (char*)malloc(strlen(url) + 1);
+    char *temp = (char*)malloc(strlen(url) + 1);
     if (temp == NULL)
     {
         perror("Error: memory allocation failed\n");
@@ -24,7 +24,7 @@ int parse_url(const char* url, struct URLInfo* url_info)
     }
     strcpy(temp, url);
 
-    char* scheme = strtok(temp, "://");
+    char *scheme = strtok(temp, "://");
     if (scheme == NULL)
     {
         perror("Error: scheme not found\n");
@@ -39,7 +39,7 @@ int parse_url(const char* url, struct URLInfo* url_info)
         return -1;
     }
 
-    char* hostname = strtok(NULL, "/");
+    char *hostname = strtok(NULL, "/");
     if (hostname == NULL)
     {
         perror("Error: hostname not found\n");
@@ -48,7 +48,7 @@ int parse_url(const char* url, struct URLInfo* url_info)
     }
     strcpy(url_info->hostname, hostname);
 
-    char* path = strtok(NULL, "");
+    char *path = strtok(NULL, "");
     if (path == NULL)
     {
         perror("Error: path not found\n");
@@ -61,11 +61,11 @@ int parse_url(const char* url, struct URLInfo* url_info)
     return 0;
 }
 
-int parse_http_response(const char* response_text, Response* response)
+int parse_http_response(const char *response_text, Response *response)
 {
-    char* line;
-    char* token;
-    const char* delim = "\r\n";
+    char *line;
+    char *token;
+    const char *delim = "\r\n";
 
     response->status_code = 0;
     response->status_text = NULL;
@@ -75,7 +75,7 @@ int parse_http_response(const char* response_text, Response* response)
     response->total_headers = 0;
 
     line = strtok((char*)response_text, delim);
-    char* temp = strtok(NULL, "");
+    char *temp = strtok(NULL, "");
 
     if (line != NULL)
     {
@@ -90,7 +90,7 @@ int parse_http_response(const char* response_text, Response* response)
         }
     }
 
-    char* body_start = strstr(temp, "\r\n\r\n");
+    char *body_start = strstr(temp, "\r\n\r\n");
     if (body_start != NULL)
     {
         body_start += 4; // Skip "\r\n\r\n"
@@ -107,7 +107,7 @@ int parse_http_response(const char* response_text, Response* response)
         response->body = body;
     }
 
-    char* header_start = temp;
+    char *header_start = temp;
     for (int i = 0; i <= MAX_HEADERS; i++)
     {
         char* header_end = strstr(header_start, "\r\n");
@@ -116,7 +116,7 @@ int parse_http_response(const char* response_text, Response* response)
             return -1;
         }
 
-        char* header = (char*)malloc(header_end - header_start + 1);
+        char *header = (char*)malloc(header_end - header_start + 1);
         if (header == NULL) {
             printf("Error: memory allocation failed\n");
             return -1;
@@ -125,8 +125,8 @@ int parse_http_response(const char* response_text, Response* response)
         strncpy(header, header_start, header_end - header_start);
         header[header_end - header_start] = '\0';
 
-        char* key = strtok(header, ":");
-        char* value = strtok(NULL, "");
+        char *key = strtok(header, ":");
+        char *value = strtok(NULL, "");
 
         key = strtok(key, "\n");
 

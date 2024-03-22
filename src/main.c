@@ -30,7 +30,7 @@ int main()
 		}
 	};
 	
-	Response* ok = fetch("https://jsonplaceholder.typicode.com/posts", &options);
+	Response *ok = fetch("https://jsonplaceholder.typicode.com/posts", &options);
 	
 	if (ok == NULL) 
 	{

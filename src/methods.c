@@ -1,8 +1,8 @@
 #include "methods.h"
 
-char* http_get(const SOCKET sockfd, const struct addrinfo* server, const struct URLInfo* url, const FetchOptions* options)
+char* http_get(const SOCKET sockfd, const struct addrinfo *server, const struct URLInfo *url, const FetchOptions *options)
 {
-    char* response = NULL;
+    char *response = NULL;
 
     char request[BUFFER_SIZE];
     snprintf(request, BUFFER_SIZE, "GET /%s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n", url->path, url->hostname);
@@ -64,7 +64,7 @@ char* http_get(const SOCKET sockfd, const struct addrinfo* server, const struct 
             char* temp = NULL;
             if (response != '\0')
             {
-                temp = realloc(response, strlen(response) + bytes_read + 1);
+                temp = (char*)realloc(response, strlen(response) + bytes_read + 1);
                 if (temp == NULL)
                 {
                     fprintf(stderr, "Error: Memory reallocation failed\n");

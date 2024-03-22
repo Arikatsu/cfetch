@@ -14,9 +14,9 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
-Response* fetch(const char* url, const FetchOptions* options)
+Response* fetch(const char *url, const FetchOptions *options)
 {
-    char* response = NULL;
+    char *response = NULL;
     
     struct URLInfo url_info;
     
@@ -34,7 +34,7 @@ Response* fetch(const char* url, const FetchOptions* options)
         return NULL;
     }
     
-    struct addrinfo* server = NULL;
+    struct addrinfo *server = NULL;
     struct addrinfo hints;
     
     memset(&hints, 0, sizeof(hints));
@@ -85,7 +85,7 @@ Response* fetch(const char* url, const FetchOptions* options)
 		    return NULL;
 	}
 
-	Response* response_struct = (Response*)malloc(sizeof(Response));
+	Response *response_struct = (Response*)malloc(sizeof(Response));
 	
 	if (parse_http_response(response, response_struct) != 0)
 	{

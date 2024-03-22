@@ -15,6 +15,6 @@
 #define BUFFER_SIZE 1024
 #define TIMEOUT_MS 5000
 
-char* http_get(const SOCKET sockfd, const struct addrinfo* server, const struct URLInfo* url, const FetchOptions* options);
+char* http_get(const SOCKET sockfd, const struct addrinfo *server, const struct URLInfo *url, const FetchOptions *options);
 
 #endif // !METHODS_H
