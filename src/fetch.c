@@ -11,6 +11,9 @@ Response* fetch(const char *url, const FetchOptions *options)
 		fprintf(stderr, "Invalid URL: %s\n", url);
 		return NULL;
 	}
+    
+	fprintf(stdout, "Hostname: %s\n", url_info.hostname);
+	fprintf(stdout, "Path: %s\n", url_info.path);
 
     WSADATA wsaData;
     int result = WSAStartup(MAKEWORD(2, 2), &wsaData);

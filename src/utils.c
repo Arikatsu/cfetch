@@ -48,14 +48,26 @@ int parse_url(const char *url, struct URLInfo *url_info)
     }
     strcpy(url_info->hostname, hostname);
 
-    char *path = strtok(NULL, "");
-    if (path == NULL)
+    char *temp_path = strtok(NULL, "");
+    if (temp_path == NULL)
     {
-        perror("Error: path not found\n");
-        free(temp);
-        return -1;
+        strcpy(url_info->path, "/");
     }
-    strcpy(url_info->path, path);
+    else
+    {
+        char *path;
+        path = (char*)malloc(strlen(temp_path) + 2);
+        if (path == NULL)
+        {
+            perror("Failed to allocate memory for path");
+            free(temp);
+
+            return -1;
+        }
+        strcpy(path, "/");
+        strcat(path, temp_path);
+        strcpy(url_info->path, path);
+    }
 
     free(temp);
     return 0;

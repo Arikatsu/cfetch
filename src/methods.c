@@ -5,7 +5,7 @@ char* http_get(const SOCKET sockfd, const struct addrinfo *server, const struct 
     char *response = NULL;
 
     char request[BUFFER_SIZE];
-    snprintf(request, BUFFER_SIZE, "GET /%s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n", url->path, url->hostname);
+    snprintf(request, BUFFER_SIZE, "GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n", url->path, url->hostname);
 
     if (options->headers != NULL)
     {
