@@ -1,6 +1,6 @@
 #include "methods.h"
 
-char* http_get(const SOCKET sockfd, const struct addrinfo *server, const struct URLInfo *url, const FetchOptions *options)
+char* http_get(const SOCKET sockfd, const struct URLInfo *url, const FetchOptions *options)
 {
     char *response = NULL;
 
@@ -22,7 +22,7 @@ char* http_get(const SOCKET sockfd, const struct addrinfo *server, const struct 
     {
         int error_code = WSAGetLastError();
         if (error_code != WSAEWOULDBLOCK) {
-            cleanup(sockfd, server, "Error sending request");
+            fprintf(stderr, "Error sending request");
             return NULL;
         }
     }
@@ -45,13 +45,13 @@ char* http_get(const SOCKET sockfd, const struct addrinfo *server, const struct 
         result = select((int)sockfd + 1, &read_fds, NULL, NULL, &timeout);
         if (result < 0)
         {
-            cleanup(sockfd, server, "Error in select()");
+            fprintf(stderr, "Error in select()");
             free(response);
             return NULL;
         }
         else if (result == 0)
         {
-            cleanup(sockfd, server, "Timeout occurred");
+            fprintf(stderr, "Timeout occurred");
             free(response);
             return NULL;
         }
@@ -85,7 +85,7 @@ char* http_get(const SOCKET sockfd, const struct addrinfo *server, const struct 
 
     if (bytes_read < 0)
     {
-        cleanup(sockfd, server, "Error reading from socket");
+        fprintf(stderr, "Error reading from socket");
         free(response);
         return NULL;
     }

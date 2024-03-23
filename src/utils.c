@@ -1,12 +1,9 @@
 #include "utils.h"
 
-void cleanup(SOCKET sockfd, struct addrinfo *server, const char *error_message)
+void cleanup(SOCKET sockfd, const char *error_message)
 {
     if (sockfd != INVALID_SOCKET)
         closesocket(sockfd);
-
-    if (server != NULL)
-        freeaddrinfo(server);
 
     if (error_message != NULL)
         perror(error_message);
@@ -40,14 +37,47 @@ int parse_url(const char *url, struct URLInfo *url_info)
     }
 	strcpy(url_info->scheme, scheme);
 
-    char *hostname = strtok(NULL, "/");
-    if (hostname == NULL)
+    char *host = strtok(NULL, "/");
+    if (host == NULL)
     {
-        perror("Error: hostname not found\n");
+        perror("Error: host not found\n");
         free(temp);
         return -1;
     }
-    strcpy(url_info->hostname, hostname);
+	
+	if (strchr(host, ':') != NULL)
+	{
+		char* hostname = strtok(host, ":");
+		if (hostname == NULL)
+		{
+			perror("Error: hostname not found\n");
+			free(temp);
+			return -1;
+		}
+		strcpy(url_info->hostname, hostname);
+
+		char* port = strtok(NULL, "/");
+		if (port == NULL)
+		{
+			perror("Error: port not found\n");
+			free(temp);
+			return -1;
+		}
+		url_info->port = atoi(port);
+	}
+	else
+	{
+		strcpy(url_info->hostname, host);
+		
+		if (strcmp(scheme, "http") == 0)
+		{
+			url_info->port = 80;
+		}
+		else if (strcmp(scheme, "https") == 0)
+		{
+			url_info->port = 443;
+		}
+	}
 
     char *temp_path = strtok(NULL, "");
     if (temp_path == NULL)
@@ -166,4 +196,28 @@ int parse_http_response(const char *response_text, Response *response)
     }
 
     return 0;
+}
+
+int check_ipv4(const char* input) {
+    int has_digit = 0;
+    int has_alpha = 0;
+    int has_dot = 0;
+    
+    while (*input) {
+        if (isdigit((unsigned char)*input)) 
+            has_digit = 1;
+        else if (isalpha((unsigned char)*input) || *input == '-') 
+            has_alpha = 1;
+        else if (*input == '.') 
+            has_dot = 1;
+        else 
+            return -1;
+        
+        input++;
+    }
+    
+    if (has_digit && has_dot && !has_alpha) 
+        return 0;
+    else
+        return 1;
 }

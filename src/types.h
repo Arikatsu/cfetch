@@ -42,6 +42,7 @@ struct URLInfo
 {
 	char scheme[8];
     char hostname[BUFFER_SIZE];
+	int port;
     char path[BUFFER_SIZE];
 };
 

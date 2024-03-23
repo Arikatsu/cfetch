@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include <winsock2.h>
@@ -14,11 +15,13 @@
 
 #define MAX_HEADERS 100
 
-void cleanup(SOCKET sockfd, struct addrinfo *server, const char *error_message);
+void cleanup(SOCKET sockfd, const char *error_message);
 
 int parse_url(const char *url, struct URLInfo *url_info);
 
 int parse_http_response(const char *response_text, Response *response);
+
+int check_ipv4(const char* input);
 
 #endif // !UTILS_H
 

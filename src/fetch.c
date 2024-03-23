@@ -11,10 +11,6 @@ Response* fetch(const char *url, const FetchOptions *options)
 		fprintf(stderr, "Invalid URL: %s\n", url);
 		return NULL;
 	}
-    
-	fprintf(stdout, "Scheme: %s\n", url_info.scheme);
-	fprintf(stdout, "Hostname: %s\n", url_info.hostname);
-	fprintf(stdout, "Path: %s\n", url_info.path);
 
     WSADATA wsaData;
     int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -24,41 +20,69 @@ Response* fetch(const char *url, const FetchOptions *options)
         return NULL;
     }
     
-    struct addrinfo *server = NULL;
-    struct addrinfo hints;
-    
-    memset(&hints, 0, sizeof(hints));
-    
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
-    
-    result = getaddrinfo(url_info.hostname, "http", &hints, &server);
-    if (result != 0) 
-    {
-        cleanup(INVALID_SOCKET, NULL, "Error resolving hostname");
-        return NULL;
-    }
-    
-    SOCKET sockfd = socket(server->ai_family, server->ai_socktype, server->ai_protocol);
+    SOCKET sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sockfd == INVALID_SOCKET) 
     {
-        cleanup(INVALID_SOCKET, server, "Error creating socket");
+        cleanup(INVALID_SOCKET, "Error creating socket");
         return NULL;
     }
-    
-    result = connect(sockfd, server->ai_addr, (int)server->ai_addrlen);
-    if (result == SOCKET_ERROR) 
+
+    if (check_ipv4(url_info.hostname) == 0)
     {
-        cleanup(sockfd, server, "Error connecting to server");
-        return NULL;
+        struct sockaddr_in server = {
+            .sin_family = AF_INET,
+            .sin_port = htons(url_info.port),
+        };
+
+        if (inet_pton(AF_INET, url_info.hostname, &server.sin_addr) != 1)
+        {
+            cleanup(INVALID_SOCKET, "Error converting IP address");
+            return NULL;
+        }
+
+        result = connect(sockfd, (struct sockaddr*)&server, sizeof(server));
+        if (result == SOCKET_ERROR)
+        {
+            cleanup(sockfd, NULL, "Error connecting to server");
+            return NULL;
+        }
+    }
+    else
+    {
+		struct addrinfo hints = {
+			.ai_family = AF_INET,
+			.ai_socktype = SOCK_STREAM,
+		};
+
+		struct addrinfo* res = NULL;
+		result = getaddrinfo(url_info.hostname, url_info.scheme, &hints, &res);
+		if (result != 0)
+		{
+			cleanup(sockfd, "Error getting address info");
+			return NULL;
+		}
+
+		struct sockaddr_in server = {
+			.sin_family = AF_INET,
+			.sin_port = htons(url_info.port),
+		};
+
+		memcpy(&server.sin_addr, &((struct sockaddr_in*)res->ai_addr)->sin_addr, sizeof(struct in_addr));
+		freeaddrinfo(res);
+
+		result = connect(sockfd, (struct sockaddr*)&server, sizeof(server));
+		if (result == SOCKET_ERROR)
+		{
+			cleanup(sockfd, "Error connecting to server");
+			return NULL;
+		}
     }
 
     u_long mode = 1;
     result = ioctlsocket(sockfd, FIONBIO, &mode);
     if (result != NO_ERROR)
     {
-        cleanup(sockfd, server, "Error setting socket to non-blocking mode");
+        cleanup(sockfd, "Error setting socket to non-blocking mode");
         return NULL;
     }
     
@@ -66,12 +90,12 @@ Response* fetch(const char *url, const FetchOptions *options)
     {
 	    case HTTP_GET:
 			fprintf(stderr, "GET %s\n\n", url);
-		    response = http_get(sockfd, server, &url_info, options);
+		    response = http_get(sockfd, &url_info, options);
 			break;
             
 	    default:
 		    fprintf(stderr, "Error: Unsupported HTTP method\n");
-		    cleanup(sockfd, server, NULL);
+		    cleanup(sockfd, NULL);
 		    return NULL;
 	}
 
@@ -79,15 +103,15 @@ Response* fetch(const char *url, const FetchOptions *options)
 	
 	if (parse_http_response(response, response_struct) != 0)
 	{
-		fprintf(stderr, "Error parsing HTTP response\n");
-		cleanup(sockfd, server, NULL);
+		cleanup(sockfd, "Error parsing HTTP response\n");
 		free(response);
 		free(response_struct);
 		return NULL;
 	}
+    
     response_struct->url = (char*)url;
     
-    cleanup(sockfd, server, NULL);
+    cleanup(sockfd, NULL);
     free(response);
     
 	return response_struct;
