@@ -38,6 +38,7 @@ int parse_url(const char *url, struct URLInfo *url_info)
         free(temp);
         return -1;
     }
+	strcpy(url_info->scheme, scheme);
 
     char *hostname = strtok(NULL, "/");
     if (hostname == NULL)

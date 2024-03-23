@@ -40,6 +40,7 @@ typedef struct
 
 struct URLInfo
 {
+	char scheme[8];
     char hostname[BUFFER_SIZE];
     char path[BUFFER_SIZE];
 };

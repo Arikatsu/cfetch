@@ -12,6 +12,7 @@ Response* fetch(const char *url, const FetchOptions *options)
 		return NULL;
 	}
     
+	fprintf(stdout, "Scheme: %s\n", url_info.scheme);
 	fprintf(stdout, "Hostname: %s\n", url_info.hostname);
 	fprintf(stdout, "Path: %s\n", url_info.path);
 
